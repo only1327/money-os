@@ -10,7 +10,7 @@ import SettingsView from '@/components/SettingsView';
 import { getTransactions, saveTransactions, type Transaction } from '@/lib/storage';
 
 export default function Index() {
-  const [locked, setLocked] = useState(true);
+  const [locked, setLocked] = useState(false);
   const [tab, setTab] = useState<TabId>('dashboard');
   const [showAdd, setShowAdd] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
