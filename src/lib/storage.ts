@@ -8,6 +8,11 @@ export interface Transaction {
   createdAt: string;
 }
 
+export interface Budget {
+  category: string;
+  limit: number;
+}
+
 export interface AppSettings {
   pinHash: string | null;
   currency: string;
@@ -16,6 +21,7 @@ export interface AppSettings {
 
 const TRANSACTIONS_KEY = 'moneyos_transactions';
 const SETTINGS_KEY = 'moneyos_settings';
+const BUDGETS_KEY = 'moneyos_budgets';
 
 const defaultSettings: AppSettings = {
   pinHash: null,
@@ -27,9 +33,7 @@ export function getTransactions(): Transaction[] {
   try {
     const raw = localStorage.getItem(TRANSACTIONS_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 export function saveTransactions(txs: Transaction[]) {
@@ -53,13 +57,32 @@ export function deleteTransaction(id: string) {
   saveTransactions(txs);
 }
 
+export function getBudgets(): Budget[] {
+  try {
+    const raw = localStorage.getItem(BUDGETS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+export function saveBudgets(budgets: Budget[]) {
+  localStorage.setItem(BUDGETS_KEY, JSON.stringify(budgets));
+}
+
+export function setBudget(category: string, limit: number) {
+  const budgets = getBudgets().filter(b => b.category !== category);
+  if (limit > 0) budgets.push({ category, limit });
+  saveBudgets(budgets);
+}
+
+export function removeBudget(category: string) {
+  saveBudgets(getBudgets().filter(b => b.category !== category));
+}
+
 export function getSettings(): AppSettings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
     return raw ? { ...defaultSettings, ...JSON.parse(raw) } : defaultSettings;
-  } catch {
-    return defaultSettings;
-  }
+  } catch { return defaultSettings; }
 }
 
 export function saveSettings(settings: Partial<AppSettings>) {
@@ -67,7 +90,6 @@ export function saveSettings(settings: Partial<AppSettings>) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...current, ...settings }));
 }
 
-// Simple hash for PIN (not cryptographically strong, but fine for local lock)
 export async function hashPin(pin: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(pin + 'moneyos_salt');
@@ -85,3 +107,15 @@ export const CATEGORY_ICONS: Record<string, string> = {
   Food: '🍔', Transport: '🚗', Housing: '🏠', Shopping: '🛍️',
   Health: '❤️', Entertainment: '🎮', Bills: '📄', Education: '📚', Other: '📌',
 };
+
+export const CHART_COLORS = [
+  'hsl(145, 85%, 45%)',
+  'hsl(40, 95%, 55%)',
+  'hsl(280, 65%, 55%)',
+  'hsl(200, 80%, 55%)',
+  'hsl(15, 80%, 55%)',
+  'hsl(180, 60%, 45%)',
+  'hsl(320, 70%, 55%)',
+  'hsl(60, 70%, 50%)',
+  'hsl(240, 60%, 60%)',
+];
