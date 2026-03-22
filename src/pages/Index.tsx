@@ -5,9 +5,10 @@ import LockScreen from '@/components/LockScreen';
 import Dashboard from '@/components/Dashboard';
 import TransactionList from '@/components/TransactionList';
 import AddTransaction from '@/components/AddTransaction';
+import BudgetView from '@/components/BudgetView';
 import BottomNav, { type TabId } from '@/components/BottomNav';
 import SettingsView from '@/components/SettingsView';
-import { getTransactions, saveTransactions, type Transaction } from '@/lib/storage';
+import { getTransactions, saveTransactions, saveBudgets, type Transaction } from '@/lib/storage';
 
 export default function Index() {
   const [locked, setLocked] = useState(false);
@@ -31,6 +32,7 @@ export default function Index() {
 
   const handleClearData = useCallback(() => {
     saveTransactions([]);
+    saveBudgets([]);
     setTransactions([]);
   }, []);
 
@@ -41,19 +43,19 @@ export default function Index() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background stripe-bg">
       {/* Header */}
-      <div className="sticky top-0 z-20 glass-panel-strong border-b border-border/10">
+      <div className="sticky top-0 z-20 bg-card border-b-3 border-primary">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-primary" />
+            <div className="w-8 h-8 bg-primary flex items-center justify-center">
+              <Shield className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
             </div>
-            <h1 className="text-lg font-bold">Money OS</h1>
+            <h1 className="text-lg font-bold uppercase tracking-wider">Money OS</h1>
           </div>
-          <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-glow" />
-            <span className="text-[10px] font-semibold text-primary">SECURE</span>
+          <div className="flex items-center gap-1.5 px-2 py-1 border-2 border-primary bg-primary/10">
+            <div className="w-2 h-2 bg-primary animate-pulse-dot" />
+            <span className="text-[9px] font-bold text-primary uppercase tracking-widest">Secure</span>
           </div>
         </div>
       </div>
@@ -62,17 +64,22 @@ export default function Index() {
       <div className="max-w-lg mx-auto px-4 pt-4">
         <AnimatePresence mode="wait">
           {tab === 'dashboard' && (
-            <motion.div key="dash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div key="dash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
               <Dashboard transactions={transactions} />
             </motion.div>
           )}
           {tab === 'transactions' && (
-            <motion.div key="txs" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div key="txs" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
               <TransactionList transactions={transactions} onDelete={handleDelete} />
             </motion.div>
           )}
+          {tab === 'budgets' && (
+            <motion.div key="budgets" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
+              <BudgetView transactions={transactions} />
+            </motion.div>
+          )}
           {tab === 'settings' && (
-            <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
               <SettingsView onLock={handleLock} onClearData={handleClearData} />
             </motion.div>
           )}
