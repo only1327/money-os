@@ -21,27 +21,20 @@ export default function BottomNav({ active, onChange, onAdd }: BottomNavProps) {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30">
       <div className="bg-card border-t-3 border-primary safe-bottom">
-        <div className="flex items-center justify-around max-w-lg mx-auto px-1 py-1">
-          {tabs.map((tab, i) => {
-            if (i === 2) {
-              return (
-                <div key="fab-group" className="flex items-center gap-0">
-                  {/* FAB */}
-                  <motion.button
-                    whileTap={{ scale: 0.92 }}
-                    onClick={onAdd}
-                    className="w-12 h-12 -mt-6 bg-primary text-primary-foreground flex items-center justify-center border-3 border-primary-foreground shadow-[4px_4px_0px] shadow-primary-foreground"
-                  >
-                    <Plus className="w-6 h-6" strokeWidth={3} />
-                  </motion.button>
-                  <NavBtn tab={tab} active={active} onChange={onChange} />
-                </div>
-              );
-            }
-            return <NavBtn key={tab.id} tab={tab} active={active} onChange={onChange} />;
-          })}
+        <div className="flex items-center justify-around max-w-lg mx-auto px-1 py-1 relative">
+          {tabs.map((tab) => (
+            <NavBtn key={tab.id} tab={tab} active={active} onChange={onChange} />
+          ))}
         </div>
       </div>
+      {/* FAB floating right */}
+      <motion.button
+        whileTap={{ scale: 0.92 }}
+        onClick={onAdd}
+        className="fixed bottom-20 right-4 z-40 w-14 h-14 bg-primary text-primary-foreground flex items-center justify-center border-3 border-foreground shadow-[4px_4px_0px] shadow-foreground"
+      >
+        <Plus className="w-7 h-7" strokeWidth={3} />
+      </motion.button>
     </div>
   );
 }
