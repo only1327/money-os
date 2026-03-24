@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileText, X, Check, AlertTriangle } from 'lucide-react';
-import { addTransaction, type Transaction } from '@/lib/storage';
+import { addTransaction, getCurrencySymbol, type Transaction } from '@/lib/storage';
 
 interface CSVImportProps {
   open: boolean;
@@ -178,7 +178,7 @@ export default function CSVImport({ open, onClose, onImport }: CSVImportProps) {
                       <span className="text-mono text-muted-foreground w-16 shrink-0">{row.date.slice(5)}</span>
                       <span className="flex-1 truncate">{row.description}</span>
                       <span className={`font-bold text-mono ${row.type === 'income' ? 'text-income' : 'text-expense'}`}>
-                        {row.type === 'income' ? '+' : '-'}${row.amount.toLocaleString()}
+                        {row.type === 'income' ? '+' : '-'}{getCurrencySymbol()}{row.amount.toLocaleString()}
                       </span>
                     </div>
                   ))}

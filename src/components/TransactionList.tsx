@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Search } from 'lucide-react';
-import { Transaction, CATEGORY_ICONS, deleteTransaction } from '@/lib/storage';
+import { Transaction, CATEGORY_ICONS, deleteTransaction, getCurrencySymbol } from '@/lib/storage';
 import { format } from 'date-fns';
 
 interface TransactionListProps {
@@ -12,6 +12,7 @@ interface TransactionListProps {
 export default function TransactionList({ transactions, onDelete }: TransactionListProps) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const cs = getCurrencySymbol();
 
   const filtered = useMemo(() => {
     return transactions.filter(t => {
@@ -94,7 +95,7 @@ export default function TransactionList({ transactions, onDelete }: TransactionL
                       <p className="text-[10px] text-muted-foreground font-bold uppercase">{tx.category}</p>
                     </div>
                     <span className={`text-sm font-bold text-mono shrink-0 ${tx.type === 'income' ? 'text-income' : 'text-expense'}`}>
-                      {tx.type === 'income' ? '+' : '-'}${tx.amount.toLocaleString()}
+                      {tx.type === 'income' ? '+' : '-'}{cs}{tx.amount.toLocaleString()}
                     </span>
                     <button
                       onClick={() => handleDelete(tx.id)}

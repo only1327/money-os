@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Target, Plus, Trash2, AlertTriangle } from 'lucide-react';
-import { CATEGORIES, CATEGORY_ICONS, getBudgets, setBudget, removeBudget, getTransactions, type Budget, type Transaction } from '@/lib/storage';
+import { CATEGORIES, CATEGORY_ICONS, getBudgets, setBudget, removeBudget, getCurrencySymbol, type Budget, type Transaction } from '@/lib/storage';
 import { isThisMonth } from 'date-fns';
 
 interface BudgetViewProps {
@@ -10,6 +10,7 @@ interface BudgetViewProps {
 
 export default function BudgetView({ transactions }: BudgetViewProps) {
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  const cs = getCurrencySymbol();
   const [showAdd, setShowAdd] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [newLimit, setNewLimit] = useState('');
@@ -63,11 +64,11 @@ export default function BudgetView({ transactions }: BudgetViewProps) {
           <div className="flex gap-4">
             <div className="flex-1 border-2 border-primary/30 p-3 bg-primary/5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Budget</p>
-              <p className="text-lg font-bold text-mono text-primary">${totalBudget.toLocaleString()}</p>
+              <p className="text-lg font-bold text-mono text-primary">{cs}{totalBudget.toLocaleString()}</p>
             </div>
             <div className="flex-1 border-2 border-expense/30 p-3 bg-expense/5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Spent</p>
-              <p className="text-lg font-bold text-mono text-expense">${totalSpent.toLocaleString()}</p>
+              <p className="text-lg font-bold text-mono text-expense">{cs}{totalSpent.toLocaleString()}</p>
             </div>
           </div>
         ) : (
@@ -113,9 +114,9 @@ export default function BudgetView({ transactions }: BudgetViewProps) {
             />
           </div>
           <div className="flex justify-between text-xs text-mono text-muted-foreground">
-            <span>${b.spent.toLocaleString()} spent</span>
+            <span>{cs}{b.spent.toLocaleString()} spent</span>
             <span className={b.remaining < 0 ? 'text-destructive font-bold' : ''}>
-              {b.remaining < 0 ? `-$${Math.abs(b.remaining).toLocaleString()} over` : `$${b.remaining.toLocaleString()} left`}
+              {b.remaining < 0 ? `-${cs}${Math.abs(b.remaining).toLocaleString()} over` : `${cs}${b.remaining.toLocaleString()} left`}
             </span>
           </div>
         </motion.div>
@@ -162,7 +163,7 @@ export default function BudgetView({ transactions }: BudgetViewProps) {
           <div>
             <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 block">Monthly Limit</label>
             <div className="brutal-input p-3 flex items-center gap-2">
-              <span className="text-lg font-bold text-muted-foreground">$</span>
+              <span className="text-lg font-bold text-muted-foreground">{cs}</span>
               <input
                 type="number"
                 inputMode="decimal"

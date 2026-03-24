@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, ArrowDownRight, Wallet, Target } from 'lucide-react';
-import { Transaction, CATEGORY_ICONS, CHART_COLORS, getBudgets } from '@/lib/storage';
+import { Transaction, CATEGORY_ICONS, CHART_COLORS, getBudgets, getCurrencySymbol } from '@/lib/storage';
 import { isThisMonth, format } from 'date-fns';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -10,6 +10,8 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ transactions }: DashboardProps) {
+  const cs = getCurrencySymbol();
+
   const stats = useMemo(() => {
     const monthTxs = transactions.filter(t => isThisMonth(new Date(t.date)));
     const income = monthTxs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
@@ -58,21 +60,21 @@ export default function Dashboard({ transactions }: DashboardProps) {
           <span className="badge-brutal text-primary">LIVE</span>
         </div>
         <p className="text-4xl font-bold text-mono text-gradient-primary mt-2">
-          ${stats.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          {cs}{stats.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
         </p>
         <div className="flex gap-4 mt-4">
           <div className="flex items-center gap-2 flex-1 bg-income/5 border-2 border-income/30 p-2.5">
             <ArrowUpRight className="w-5 h-5 text-income" strokeWidth={3} />
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Income</p>
-              <p className="text-sm font-bold text-mono text-income">+${stats.income.toLocaleString()}</p>
+              <p className="text-sm font-bold text-mono text-income">+{cs}{stats.income.toLocaleString()}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-1 bg-expense/5 border-2 border-expense/30 p-2.5">
             <ArrowDownRight className="w-5 h-5 text-expense" strokeWidth={3} />
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Expenses</p>
-              <p className="text-sm font-bold text-mono text-expense">-${stats.expenses.toLocaleString()}</p>
+              <p className="text-sm font-bold text-mono text-expense">-{cs}{stats.expenses.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -104,7 +106,7 @@ export default function Dashboard({ transactions }: DashboardProps) {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
+                    formatter={(value: number) => [`${cs}${value.toLocaleString()}`, '']}
                     contentStyle={{
                       background: 'hsl(220, 20%, 7%)',
                       border: '2px solid hsl(145, 85%, 45%)',
@@ -118,11 +120,11 @@ export default function Dashboard({ transactions }: DashboardProps) {
               </ResponsiveContainer>
             </div>
             <div className="flex-1 space-y-1.5 min-w-0">
-              {pieData.map((d, i) => (
+              {pieData.map((d) => (
                 <div key={d.name} className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 shrink-0 border border-foreground/20" style={{ background: d.color }} />
                   <span className="truncate font-medium">{CATEGORY_ICONS[d.name]} {d.name}</span>
-                  <span className="ml-auto text-mono text-muted-foreground">${d.value.toLocaleString()}</span>
+                  <span className="ml-auto text-mono text-muted-foreground">{cs}{d.value.toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -144,7 +146,7 @@ export default function Dashboard({ transactions }: DashboardProps) {
                     {CATEGORY_ICONS[b.category]} {b.category}
                   </span>
                   <span className="text-mono text-muted-foreground">
-                    ${b.spent.toLocaleString()} / ${b.limit.toLocaleString()}
+                    {cs}{b.spent.toLocaleString()} / {cs}{b.limit.toLocaleString()}
                   </span>
                 </div>
                 <div className="h-3 bg-muted border-2 border-muted-foreground/20 relative overflow-hidden">
@@ -191,7 +193,7 @@ export default function Dashboard({ transactions }: DashboardProps) {
                   <p className="text-[10px] text-muted-foreground font-bold uppercase">{format(new Date(tx.date), 'MMM d')}</p>
                 </div>
                 <span className={`text-sm font-bold text-mono ${tx.type === 'income' ? 'text-income' : 'text-expense'}`}>
-                  {tx.type === 'income' ? '+' : '-'}${tx.amount.toLocaleString()}
+                  {tx.type === 'income' ? '+' : '-'}{cs}{tx.amount.toLocaleString()}
                 </span>
               </div>
             ))}
