@@ -12,6 +12,7 @@ interface TransactionListProps {
 export default function TransactionList({ transactions, onDelete }: TransactionListProps) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const cs = getCurrencySymbol();
 
   const filtered = useMemo(() => {
     return transactions.filter(t => {
