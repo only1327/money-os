@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { CATEGORIES, CATEGORY_ICONS, addTransaction, type Transaction } from '@/lib/storage';
+import { CATEGORIES, CATEGORY_ICONS, addTransaction, getCurrencySymbol, type Transaction } from '@/lib/storage';
 
 interface AddTransactionProps {
   open: boolean;
