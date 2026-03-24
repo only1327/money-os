@@ -64,7 +64,7 @@ export default function BudgetView({ transactions }: BudgetViewProps) {
           <div className="flex gap-4">
             <div className="flex-1 border-2 border-primary/30 p-3 bg-primary/5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Budget</p>
-              <p className="text-lg font-bold text-mono text-primary">${totalBudget.toLocaleString()}</p>
+              <p className="text-lg font-bold text-mono text-primary">{cs}{totalBudget.toLocaleString()}</p>
             </div>
             <div className="flex-1 border-2 border-expense/30 p-3 bg-expense/5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Spent</p>
