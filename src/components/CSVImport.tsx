@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileText, X, Check, AlertTriangle } from 'lucide-react';
-import { addTransaction, type Transaction } from '@/lib/storage';
+import { addTransaction, getCurrencySymbol, type Transaction } from '@/lib/storage';
 
 interface CSVImportProps {
   open: boolean;
