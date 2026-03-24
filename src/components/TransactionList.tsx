@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Search } from 'lucide-react';
-import { Transaction, CATEGORY_ICONS, deleteTransaction } from '@/lib/storage';
+import { Transaction, CATEGORY_ICONS, deleteTransaction, getCurrencySymbol } from '@/lib/storage';
 import { format } from 'date-fns';
 
 interface TransactionListProps {
