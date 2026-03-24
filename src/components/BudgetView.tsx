@@ -114,9 +114,9 @@ export default function BudgetView({ transactions }: BudgetViewProps) {
             />
           </div>
           <div className="flex justify-between text-xs text-mono text-muted-foreground">
-            <span>${b.spent.toLocaleString()} spent</span>
+            <span>{cs}{b.spent.toLocaleString()} spent</span>
             <span className={b.remaining < 0 ? 'text-destructive font-bold' : ''}>
-              {b.remaining < 0 ? `-$${Math.abs(b.remaining).toLocaleString()} over` : `$${b.remaining.toLocaleString()} left`}
+              {b.remaining < 0 ? `-${cs}${Math.abs(b.remaining).toLocaleString()} over` : `${cs}${b.remaining.toLocaleString()} left`}
             </span>
           </div>
         </motion.div>
