@@ -11,7 +11,7 @@ import SettingsView from '@/components/SettingsView';
 import GamificationHub from '@/components/GamificationHub';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import CSVImport from '@/components/CSVImport';
-import { getTransactions, saveTransactions, saveBudgets, type Transaction } from '@/lib/storage';
+import { getTransactions, saveTransactions, saveBudgets, getCurrencySymbol, type Transaction } from '@/lib/storage';
 import {
   getGamificationState, saveGamificationState, updateStreak, awardXP,
   checkNewAchievements, XP_ACTIONS, getLevelForXP, type GamificationState,
@@ -22,14 +22,15 @@ export default function Index() {
   const [locked, setLocked] = useState(false);
   const [tab, setTab] = useState<TabId>('dashboard');
   const [showAdd, setShowAdd] = useState(false);
+  const [showBudget, setShowBudget] = useState(false);
   const [showCSV, setShowCSV] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [gamification, setGamification] = useState<GamificationState>(getGamificationState());
   const { toast } = useToast();
 
   useEffect(() => {
     setTransactions(getTransactions());
-    // Update streak on load
     const { streakBroken, bonusXP, state } = updateStreak();
     setGamification(state);
     if (streakBroken) {
@@ -38,7 +39,6 @@ export default function Index() {
     if (bonusXP > 0) {
       toast({ title: `🔥 Streak Bonus! +${bonusXP} XP`, description: `${state.streak}-day streak milestone!` });
     }
-    // Check achievements
     const newAchievements = checkNewAchievements();
     if (newAchievements.length > 0) {
       setGamification(getGamificationState());
@@ -52,7 +52,6 @@ export default function Index() {
 
   const handleAdd = useCallback((tx: Transaction) => {
     setTransactions(prev => [tx, ...prev]);
-    // Award XP
     const xpAmount = tx.type === 'income' ? XP_ACTIONS.LOG_INCOME : XP_ACTIONS.LOG_EXPENSE;
     const { state, leveledUp, newLevel } = awardXP(xpAmount);
     setGamification(state);
@@ -62,7 +61,6 @@ export default function Index() {
         toast({ title: `${newLevel.icon} Level Up!`, description: `You're now a ${newLevel.title}!` });
       }, 500);
     }
-    // Check achievements
     setTimeout(() => {
       const newAch = checkNewAchievements();
       if (newAch.length > 0) {
@@ -121,25 +119,16 @@ export default function Index() {
             <h1 className="text-lg font-bold uppercase tracking-wider">Money OS</h1>
           </div>
           <div className="flex items-center gap-2">
-            {/* Level badge */}
             <div className="flex items-center gap-1 px-2 py-1 border-2 border-accent bg-accent/10">
               <span className="text-sm">{level.icon}</span>
               <span className="text-[9px] font-bold text-accent uppercase tracking-widest">Lv.{level.level}</span>
             </div>
-            {/* Streak */}
             {gamification.streak > 0 && (
               <div className="flex items-center gap-1 px-2 py-1 border-2 border-primary bg-primary/10">
                 <Zap className="w-3 h-3 text-primary" strokeWidth={3} />
                 <span className="text-[9px] font-bold text-primary text-mono">{gamification.streak}🔥</span>
               </div>
             )}
-            {/* CSV Import */}
-            <button
-              onClick={() => setShowCSV(true)}
-              className="p-1.5 border-2 border-muted-foreground/20 hover:border-primary transition-colors"
-            >
-              <Upload className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={3} />
-            </button>
           </div>
         </div>
       </div>
@@ -147,42 +136,85 @@ export default function Index() {
       {/* Content */}
       <div className="max-w-lg mx-auto px-4 pt-4">
         <AnimatePresence mode="wait">
-          {tab === 'dashboard' && (
+          {tab === 'dashboard' && !showHistory && (
             <motion.div key="dash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
               <Dashboard transactions={transactions} />
             </motion.div>
           )}
-          {tab === 'gamification' && (
+          {tab === 'gamification' && !showHistory && (
             <motion.div key="game" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
               <GamificationHub state={gamification} onModeChange={handleModeChange} />
             </motion.div>
           )}
-          {tab === 'analytics' && (
+          {tab === 'analytics' && !showHistory && (
             <motion.div key="analytics" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
               <AnalyticsDashboard transactions={transactions} />
             </motion.div>
           )}
-          {tab === 'transactions' && (
-            <motion.div key="txs" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
-              <TransactionList transactions={transactions} onDelete={handleDelete} />
-            </motion.div>
-          )}
-          {tab === 'budgets' && (
-            <motion.div key="budgets" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
-              <BudgetView transactions={transactions} />
-            </motion.div>
-          )}
-          {tab === 'settings' && (
+          {tab === 'settings' && !showHistory && (
             <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
-              <SettingsView onLock={handleLock} onClearData={handleClearData} />
+              <SettingsView
+                onLock={handleLock}
+                onClearData={handleClearData}
+                onShowHistory={() => setShowHistory(true)}
+                onShowCSV={() => setShowCSV(true)}
+              />
+            </motion.div>
+          )}
+          {showHistory && (
+            <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
+              <div className="mb-4">
+                <button
+                  onClick={() => setShowHistory(false)}
+                  className="text-xs font-bold uppercase tracking-wider text-primary border-2 border-primary px-3 py-1.5 hover:bg-primary hover:text-primary-foreground transition-colors"
+                >
+                  ← Back
+                </button>
+              </div>
+              <TransactionList transactions={transactions} onDelete={handleDelete} />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <BottomNav active={tab} onChange={setTab} onAdd={() => setShowAdd(true)} />
+      <BottomNav
+        active={tab}
+        onChange={(t) => { setShowHistory(false); setTab(t); }}
+        onAdd={() => setShowAdd(true)}
+        onBudget={() => setShowBudget(true)}
+      />
       <AddTransaction open={showAdd} onClose={() => setShowAdd(false)} onAdd={handleAdd} />
       <CSVImport open={showCSV} onClose={() => setShowCSV(false)} onImport={handleCSVImport} />
+
+      {/* Budget Modal */}
+      <AnimatePresence>
+        {showBudget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.1 }}
+            className="fixed inset-0 z-40 flex items-end justify-center"
+          >
+            <div className="absolute inset-0 bg-background/80" onClick={() => setShowBudget(false)} />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+              className="relative w-full max-w-lg bg-card border-t-3 border-x-3 border-primary p-5 safe-bottom max-h-[80vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-bold uppercase tracking-widest">Set Budgets</h2>
+                <button onClick={() => setShowBudget(false)} className="p-2 border-2 border-muted-foreground/20 hover:border-primary transition-colors">
+                  <span className="text-xs font-bold">✕</span>
+                </button>
+              </div>
+              <BudgetView transactions={transactions} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
