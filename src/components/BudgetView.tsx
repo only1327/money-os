@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Target, Plus, Trash2, AlertTriangle } from 'lucide-react';
-import { CATEGORIES, CATEGORY_ICONS, getBudgets, setBudget, removeBudget, getTransactions, type Budget, type Transaction } from '@/lib/storage';
+import { CATEGORIES, CATEGORY_ICONS, getBudgets, setBudget, removeBudget, getCurrencySymbol, type Budget, type Transaction } from '@/lib/storage';
 import { isThisMonth } from 'date-fns';
 
 interface BudgetViewProps {
