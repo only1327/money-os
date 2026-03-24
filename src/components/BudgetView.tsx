@@ -10,6 +10,7 @@ interface BudgetViewProps {
 
 export default function BudgetView({ transactions }: BudgetViewProps) {
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  const cs = getCurrencySymbol();
   const [showAdd, setShowAdd] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [newLimit, setNewLimit] = useState('');
