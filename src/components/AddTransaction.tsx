@@ -82,7 +82,7 @@ export default function AddTransaction({ open, onClose, onAdd }: AddTransactionP
             <div className="mb-4">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 block">Amount</label>
               <div className="brutal-input p-3 flex items-center gap-2">
-                <span className="text-lg font-bold text-muted-foreground">$</span>
+                <span className="text-lg font-bold text-muted-foreground">{getCurrencySymbol()}</span>
                 <input
                   type="number"
                   inputMode="decimal"

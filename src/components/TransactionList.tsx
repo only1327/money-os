@@ -94,7 +94,7 @@ export default function TransactionList({ transactions, onDelete }: TransactionL
                       <p className="text-[10px] text-muted-foreground font-bold uppercase">{tx.category}</p>
                     </div>
                     <span className={`text-sm font-bold text-mono shrink-0 ${tx.type === 'income' ? 'text-income' : 'text-expense'}`}>
-                      {tx.type === 'income' ? '+' : '-'}${tx.amount.toLocaleString()}
+                      {tx.type === 'income' ? '+' : '-'}{cs}{tx.amount.toLocaleString()}
                     </span>
                     <button
                       onClick={() => handleDelete(tx.id)}

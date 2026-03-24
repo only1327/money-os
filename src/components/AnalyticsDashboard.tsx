@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, TrendingUp, Calendar } from 'lucide-react';
-import { Transaction, CATEGORY_ICONS, CHART_COLORS } from '@/lib/storage';
-import { generateInsights, type AIInsight } from '@/lib/gamification';
+import { BarChart3, TrendingUp } from 'lucide-react';
+import { Transaction, CATEGORY_ICONS, CHART_COLORS, getCurrencySymbol } from '@/lib/storage';
+import { generateInsights } from '@/lib/gamification';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  AreaChart, Area, LineChart, Line,
+  AreaChart, Area,
 } from 'recharts';
-import { format, subDays, subMonths, isAfter, startOfMonth, startOfWeek, isThisMonth } from 'date-fns';
+import { format, subDays, subMonths, isAfter } from 'date-fns';
 
 interface AnalyticsDashboardProps {
   transactions: Transaction[];
@@ -18,6 +18,7 @@ type TimeFilter = '7d' | '30d' | '3m' | '1y' | 'all';
 
 export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardProps) {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('30d');
+  const cs = getCurrencySymbol();
 
   const filtered = useMemo(() => {
     const now = new Date();
@@ -59,7 +60,6 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
         expenses: dayTxs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
       });
     }
-    // Group into reasonable buckets if too many data points
     if (data.length > 15) {
       const grouped: typeof data = [];
       const chunk = Math.ceil(data.length / 12);
@@ -124,16 +124,16 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
         <div className="grid grid-cols-3 gap-3">
           <div className="border-2 border-income/30 p-2 bg-income/5 text-center">
             <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Income</p>
-            <p className="text-sm font-bold text-mono text-income">${stats.income.toLocaleString()}</p>
+            <p className="text-sm font-bold text-mono text-income">{cs}{stats.income.toLocaleString()}</p>
           </div>
           <div className="border-2 border-expense/30 p-2 bg-expense/5 text-center">
             <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Expenses</p>
-            <p className="text-sm font-bold text-mono text-expense">${stats.expenses.toLocaleString()}</p>
+            <p className="text-sm font-bold text-mono text-expense">{cs}{stats.expenses.toLocaleString()}</p>
           </div>
           <div className={`border-2 p-2 text-center ${stats.net >= 0 ? 'border-income/30 bg-income/5' : 'border-expense/30 bg-expense/5'}`}>
             <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Net</p>
             <p className={`text-sm font-bold text-mono ${stats.net >= 0 ? 'text-income' : 'text-expense'}`}>
-              {stats.net >= 0 ? '+' : '-'}${Math.abs(stats.net).toLocaleString()}
+              {stats.net >= 0 ? '+' : '-'}{cs}{Math.abs(stats.net).toLocaleString()}
             </p>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 18%, 15%)" />
                 <XAxis dataKey="date" tick={{ fill: 'hsl(220, 10%, 45%)', fontSize: 9 }} />
                 <YAxis tick={{ fill: 'hsl(220, 10%, 45%)', fontSize: 9 }} />
-                <Tooltip contentStyle={chartStyle} />
+                <Tooltip contentStyle={chartStyle} formatter={(value: number) => [`${cs}${value.toLocaleString()}`, '']} />
                 <Area type="monotone" dataKey="income" stroke="hsl(145, 85%, 45%)" fill="hsl(145, 85%, 45%)" fillOpacity={0.2} strokeWidth={2} />
                 <Area type="monotone" dataKey="expenses" stroke="hsl(0, 75%, 50%)" fill="hsl(0, 75%, 50%)" fillOpacity={0.2} strokeWidth={2} />
               </AreaChart>
@@ -200,7 +200,7 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={35} outerRadius={65} paddingAngle={3} dataKey="value" stroke="hsl(220, 25%, 3%)" strokeWidth={3}>
                     {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
-                  <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, '']} contentStyle={chartStyle} />
+                  <Tooltip formatter={(value: number) => [`${cs}${value.toLocaleString()}`, '']} contentStyle={chartStyle} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -209,7 +209,7 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
                 <div key={d.name} className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 shrink-0 border border-foreground/20" style={{ background: d.color }} />
                   <span className="truncate font-medium">{CATEGORY_ICONS[d.name]} {d.name}</span>
-                  <span className="ml-auto text-mono text-muted-foreground">${d.value.toLocaleString()}</span>
+                  <span className="ml-auto text-mono text-muted-foreground">{cs}{d.value.toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -229,7 +229,7 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 18%, 15%)" />
                 <XAxis dataKey="name" tick={{ fill: 'hsl(220, 10%, 45%)', fontSize: 9 }} />
                 <YAxis tick={{ fill: 'hsl(220, 10%, 45%)', fontSize: 9 }} />
-                <Tooltip contentStyle={chartStyle} />
+                <Tooltip contentStyle={chartStyle} formatter={(value: number) => [`${cs}${value.toLocaleString()}`, '']} />
                 <Bar dataKey="value" fill="hsl(145, 85%, 45%)" stroke="hsl(220, 25%, 3%)" strokeWidth={2}>
                   {categoryBarData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                 </Bar>
