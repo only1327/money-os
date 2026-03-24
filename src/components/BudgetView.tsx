@@ -68,7 +68,7 @@ export default function BudgetView({ transactions }: BudgetViewProps) {
             </div>
             <div className="flex-1 border-2 border-expense/30 p-3 bg-expense/5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Spent</p>
-              <p className="text-lg font-bold text-mono text-expense">${totalSpent.toLocaleString()}</p>
+              <p className="text-lg font-bold text-mono text-expense">{cs}{totalSpent.toLocaleString()}</p>
             </div>
           </div>
         ) : (
