@@ -322,47 +322,108 @@ export function checkNewAchievements(): Achievement[] {
   return newAchievements;
 }
 
-// ── AI Coach (Local Logic) ─────────────────────────────────────────────
+// ── AI Coach (Local Logic — Optimized) ─────────────────────────────────
+
+function getCategoryTrend(transactions: Transaction[], category: string): 'up' | 'down' | 'stable' {
+  const now = new Date();
+  const thisMonth = transactions.filter(t => t.type === 'expense' && t.category === category && isThisMonth(new Date(t.date)));
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+  const lastMonth = transactions.filter(t => {
+    const d = new Date(t.date);
+    return t.type === 'expense' && t.category === category && d >= lastMonthStart && d <= lastMonthEnd;
+  });
+  const thisTotal = thisMonth.reduce((s, t) => s + t.amount, 0);
+  const lastTotal = lastMonth.reduce((s, t) => s + t.amount, 0);
+  if (lastTotal === 0) return 'stable';
+  const change = (thisTotal - lastTotal) / lastTotal;
+  return change > 0.15 ? 'up' : change < -0.15 ? 'down' : 'stable';
+}
+
+function getDayOfWeekPattern(transactions: Transaction[]): { highDay: string; lowDay: string } | null {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const byDay: Record<number, number[]> = {};
+  transactions.filter(t => t.type === 'expense').forEach(t => {
+    const d = new Date(t.date).getDay();
+    if (!byDay[d]) byDay[d] = [];
+    byDay[d].push(t.amount);
+  });
+  const avgByDay = Object.entries(byDay).map(([d, amounts]) => ({
+    day: parseInt(d),
+    avg: amounts.reduce((s, a) => s + a, 0) / amounts.length,
+  }));
+  if (avgByDay.length < 3) return null;
+  avgByDay.sort((a, b) => b.avg - a.avg);
+  return { highDay: days[avgByDay[0].day], lowDay: days[avgByDay[avgByDay.length - 1].day] };
+}
 
 export function generateInsights(transactions: Transaction[]): AIInsight[] {
   const insights: AIInsight[] = [];
   const monthTxs = transactions.filter(t => isThisMonth(new Date(t.date)));
   const expenses = monthTxs.filter(t => t.type === 'expense');
   const income = monthTxs.filter(t => t.type === 'income');
-  
+
   const totalExpense = expenses.reduce((s, t) => s + t.amount, 0);
   const totalIncome = income.reduce((s, t) => s + t.amount, 0);
 
-  // Category analysis
+  // Category analysis with trend
   const byCategory: Record<string, number> = {};
   expenses.forEach(t => { byCategory[t.category] = (byCategory[t.category] || 0) + t.amount; });
-  const topCategory = Object.entries(byCategory).sort((a, b) => b[1] - a[1])[0];
+  const sortedCategories = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
+  const topCategory = sortedCategories[0];
 
-  if (topCategory && topCategory[1] > totalExpense * 0.4) {
+  if (topCategory && topCategory[1] > totalExpense * 0.35) {
+    const trend = getCategoryTrend(transactions, topCategory[0]);
+    const trendMsg = trend === 'up' ? ' and trending UP ↑' : trend === 'down' ? ' (trending down ↓ — nice!)' : '';
     insights.push({
-      type: 'warning',
-      icon: '🔍',
-      title: 'Money Leak Detected',
-      message: `${topCategory[0]} is ${Math.round((topCategory[1] / totalExpense) * 100)}% of spending ($${topCategory[1].toLocaleString()}). Can you reduce by $${Math.round(topCategory[1] * 0.1)}/day?`,
+      type: trend === 'down' ? 'celebration' : 'warning',
+      icon: trend === 'down' ? '📉' : '🔍',
+      title: trend === 'down' ? `${topCategory[0]} Improving!` : 'Money Leak Detected',
+      message: `${topCategory[0]} = ${Math.round((topCategory[1] / totalExpense) * 100)}% of spending${trendMsg}. ${trend !== 'down' ? `Try cutting ${Math.round(topCategory[1] * 0.1)}/day.` : 'Keep it up!'}`,
     });
   }
 
-  // Savings rate
+  // Spending pattern by day of week
+  const dayPattern = getDayOfWeekPattern(transactions);
+  if (dayPattern) {
+    insights.push({
+      type: 'tip',
+      icon: '📅',
+      title: 'Spending Pattern',
+      message: `You spend most on ${dayPattern.highDay}s and least on ${dayPattern.lowDay}s. Plan big purchases for ${dayPattern.lowDay}s to stay disciplined.`,
+    });
+  }
+
+  // Savings rate with comparison
   if (totalIncome > 0) {
     const savingsRate = ((totalIncome - totalExpense) / totalIncome) * 100;
-    if (savingsRate > 20) {
+    if (savingsRate > 30) {
+      insights.push({
+        type: 'celebration',
+        icon: '🏆',
+        title: 'Elite Savings!',
+        message: `${Math.round(savingsRate)}% savings rate — better than 90% of people! Projected: ${Math.round((totalIncome - totalExpense) * 12).toLocaleString()}/year.`,
+      });
+    } else if (savingsRate > 15) {
       insights.push({
         type: 'celebration',
         icon: '🎉',
-        title: 'Great Savings Rate!',
-        message: `You're saving ${Math.round(savingsRate)}% of income. Keep this up for $${Math.round((totalIncome - totalExpense) * 12).toLocaleString()}/year!`,
+        title: 'Solid Savings',
+        message: `${Math.round(savingsRate)}% savings rate. Push to 30% to unlock elite status!`,
       });
-    } else if (savingsRate < 10) {
+    } else if (savingsRate > 0) {
+      insights.push({
+        type: 'tip',
+        icon: '💡',
+        title: 'Savings Opportunity',
+        message: `${Math.round(savingsRate)}% savings. Cut your top category by 20% to reach ${Math.round(savingsRate + (topCategory ? (topCategory[1] * 0.2 / totalIncome) * 100 : 5))}%.`,
+      });
+    } else {
       insights.push({
         type: 'warning',
-        icon: '⚠️',
-        title: 'Low Savings Alert',
-        message: `Only ${Math.round(savingsRate)}% savings rate. Try the "Aggressive Saver" mode to improve.`,
+        icon: '🚨',
+        title: 'Overspending Alert',
+        message: `You're spending more than you earn! Reduce by ${Math.round(totalExpense - totalIncome).toLocaleString()} to break even.`,
       });
     }
   }
@@ -370,30 +431,40 @@ export function generateInsights(transactions: Transaction[]): AIInsight[] {
   // Daily spending projection
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
   const dayOfMonth = new Date().getDate();
-  if (dayOfMonth > 5 && totalExpense > 0) {
+  if (dayOfMonth > 3 && totalExpense > 0) {
     const dailyAvg = totalExpense / dayOfMonth;
     const projected = dailyAvg * daysInMonth;
-    insights.push({
-      type: 'projection',
-      icon: '📈',
-      title: 'Monthly Projection',
-      message: `At $${Math.round(dailyAvg)}/day, you'll spend ~$${Math.round(projected).toLocaleString()} this month.`,
-    });
+    const budgets = getBudgets();
+    const totalBudget = budgets.reduce((s, b) => s + b.limit, 0);
+    if (totalBudget > 0 && projected > totalBudget) {
+      insights.push({
+        type: 'warning',
+        icon: '📊',
+        title: 'Over-Budget Trajectory',
+        message: `At ${Math.round(dailyAvg)}/day, you'll hit ${Math.round(projected).toLocaleString()} — that's ${Math.round(((projected - totalBudget) / totalBudget) * 100)}% over budget. Cut ${Math.round((projected - totalBudget) / (daysInMonth - dayOfMonth))}/day to stay on track.`,
+      });
+    } else {
+      insights.push({
+        type: 'projection',
+        icon: '📈',
+        title: 'Monthly Projection',
+        message: `At ${Math.round(dailyAvg)}/day → ~${Math.round(projected).toLocaleString()} this month.${totalBudget > 0 ? ` Budget: ${totalBudget.toLocaleString()} (${Math.round((projected / totalBudget) * 100)}%)` : ''}`,
+      });
+    }
   }
 
-  // Budget status
+  // Budget warnings
   const budgets = getBudgets();
   const overBudget = budgets.filter(b => {
     const spent = expenses.filter(t => t.category === b.category).reduce((s, t) => s + t.amount, 0);
     return spent > b.limit * 0.8;
   });
-
   if (overBudget.length > 0) {
     insights.push({
       type: 'warning',
-      icon: '🚨',
+      icon: '⚠️',
       title: 'Budget Warning',
-      message: `${overBudget.map(b => b.category).join(', ')} ${overBudget.length === 1 ? 'is' : 'are'} near or over budget.`,
+      message: `${overBudget.map(b => b.category).join(', ')} near/over limit. ${overBudget.length > 1 ? 'Focus on the biggest offender first.' : 'Pause spending here.'}`,
     });
   }
 
@@ -404,8 +475,8 @@ export function generateInsights(transactions: Transaction[]): AIInsight[] {
     insights.push({
       type: 'tip',
       icon: '🔥',
-      title: 'Streak Active',
-      message: `${nextMilestone - state.streak} more day${nextMilestone - state.streak === 1 ? '' : 's'} to hit your ${nextMilestone}-day milestone!`,
+      title: `${state.streak}-Day Streak`,
+      message: `${nextMilestone - state.streak} day${nextMilestone - state.streak === 1 ? '' : 's'} to ${nextMilestone}-day milestone → +${nextMilestone === 7 ? 50 : nextMilestone === 30 ? 200 : 500} XP!`,
     });
   }
 
@@ -417,11 +488,24 @@ export function generateInsights(transactions: Transaction[]): AIInsight[] {
       type: 'celebration',
       icon: '✨',
       title: 'Micro Win!',
-      message: `Only $${todayTotal} spent today — great discipline!`,
+      message: `Only ${todayTotal} spent today — great discipline! That's ${Math.round((50 - todayTotal) * 365).toLocaleString()} saved/year vs a 50/day habit.`,
     });
   }
 
-  return insights.slice(0, 4);
+  // Category diversity insight
+  if (sortedCategories.length >= 3) {
+    const top3Pct = sortedCategories.slice(0, 3).reduce((s, [, v]) => s + v, 0) / totalExpense * 100;
+    if (top3Pct > 85) {
+      insights.push({
+        type: 'tip',
+        icon: '🎯',
+        title: 'Concentrated Spending',
+        message: `${Math.round(top3Pct)}% of spending in just 3 categories (${sortedCategories.slice(0, 3).map(([c]) => c).join(', ')}). Small cuts here = big savings.`,
+      });
+    }
+  }
+
+  return insights.slice(0, 5);
 }
 
 // ── Game Mode Configs ──────────────────────────────────────────────────

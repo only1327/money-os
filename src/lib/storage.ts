@@ -29,6 +29,17 @@ const defaultSettings: AppSettings = {
   autoLockSeconds: 60,
 };
 
+// Currency symbols lookup
+export const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: '$', EUR: '€', GBP: '£', INR: '₹', JPY: '¥',
+  CAD: 'C$', AUD: 'A$', CNY: '¥', KRW: '₩', BRL: 'R$',
+};
+
+export function getCurrencySymbol(): string {
+  const settings = getSettings();
+  return CURRENCY_SYMBOLS[settings.currency] || '$';
+}
+
 export function getTransactions(): Transaction[] {
   try {
     const raw = localStorage.getItem(TRANSACTIONS_KEY);
