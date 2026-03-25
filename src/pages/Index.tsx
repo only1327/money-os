@@ -9,6 +9,7 @@ import BudgetView from '@/components/BudgetView';
 import BottomNav, { type TabId } from '@/components/BottomNav';
 import SettingsView from '@/components/SettingsView';
 import GamificationHub from '@/components/GamificationHub';
+import SavingsView from '@/components/SavingsView';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import CSVImport from '@/components/CSVImport';
 import { getTransactions, saveTransactions, saveBudgets, getCurrencySymbol, type Transaction } from '@/lib/storage';
