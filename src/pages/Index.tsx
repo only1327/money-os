@@ -147,7 +147,6 @@ export default function Index() {
               <SavingsView transactions={transactions} />
             </motion.div>
           )}
-          )}
           {tab === 'analytics' && !showHistory && (
             <motion.div key="analytics" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
               <AnalyticsDashboard transactions={transactions} />
