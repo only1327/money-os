@@ -143,9 +143,10 @@ export default function Index() {
             </motion.div>
           )}
           {tab === 'gamification' && !showHistory && (
-            <motion.div key="game" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
-              <GamificationHub state={gamification} onModeChange={handleModeChange} />
+            <motion.div key="save" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
+              <SavingsView transactions={transactions} />
             </motion.div>
+          )}
           )}
           {tab === 'analytics' && !showHistory && (
             <motion.div key="analytics" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
