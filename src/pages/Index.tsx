@@ -9,6 +9,7 @@ import BudgetView from '@/components/BudgetView';
 import BottomNav, { type TabId } from '@/components/BottomNav';
 import SettingsView from '@/components/SettingsView';
 import GamificationHub from '@/components/GamificationHub';
+import SavingsView from '@/components/SavingsView';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import CSVImport from '@/components/CSVImport';
 import { getTransactions, saveTransactions, saveBudgets, getCurrencySymbol, type Transaction } from '@/lib/storage';
@@ -142,8 +143,8 @@ export default function Index() {
             </motion.div>
           )}
           {tab === 'gamification' && !showHistory && (
-            <motion.div key="game" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
-              <GamificationHub state={gamification} onModeChange={handleModeChange} />
+            <motion.div key="save" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
+              <SavingsView transactions={transactions} />
             </motion.div>
           )}
           {tab === 'analytics' && !showHistory && (
