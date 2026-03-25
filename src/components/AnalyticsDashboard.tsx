@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, TrendingUp } from 'lucide-react';
+import { BarChart3, TrendingUp, Brain, MessageCircle, ChevronRight } from 'lucide-react';
 import { Transaction, CATEGORY_ICONS, CHART_COLORS, getCurrencySymbol } from '@/lib/storage';
-import { generateInsights } from '@/lib/gamification';
+import { generateInsights, type AIInsight } from '@/lib/gamification';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -15,6 +15,13 @@ interface AnalyticsDashboardProps {
 }
 
 type TimeFilter = '7d' | '30d' | '3m' | '1y' | 'all';
+
+const QUICK_PROMPTS = [
+  'How can I save more?',
+  'Where am I overspending?',
+  'Am I on track this month?',
+  'What should I cut first?',
+];
 
 export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardProps) {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('30d');
@@ -43,6 +50,7 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
     });
     return Object.entries(byCategory)
       .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
       .map(([name, value], i) => ({ name, value, color: CHART_COLORS[i % CHART_COLORS.length] }));
   }, [filtered]);
 
@@ -89,29 +97,29 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
 
   const insights = useMemo(() => generateInsights(transactions), [transactions]);
 
-  const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.15 } } };
+  const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.2 } } };
 
   const chartStyle = {
-    background: 'hsl(220, 20%, 7%)',
-    border: '2px solid hsl(145, 85%, 45%)',
-    boxShadow: '3px 3px 0px hsl(145, 85%, 45%)',
+    background: 'hsl(220, 25%, 5%)',
+    border: '1px solid hsl(145, 85%, 45%, 0.2)',
     fontFamily: 'Space Mono, monospace',
-    fontSize: '11px',
+    fontSize: '10px',
     color: 'hsl(60, 10%, 92%)',
+    borderRadius: '2px',
   };
 
   return (
-    <motion.div initial="hidden" animate="show" transition={{ staggerChildren: 0.05 }} className="space-y-4 pb-28">
+    <motion.div initial="hidden" animate="show" transition={{ staggerChildren: 0.04 }} className="space-y-3 pb-28">
       {/* Time Filter */}
-      <motion.div variants={item} className="flex gap-1.5">
+      <motion.div variants={item} className="flex gap-1">
         {(['7d', '30d', '3m', '1y', 'all'] as TimeFilter[]).map(f => (
           <button
             key={f}
             onClick={() => setTimeFilter(f)}
-            className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest transition-all border-2 ${
+            className={`flex-1 py-2 text-[9px] font-bold uppercase tracking-widest rounded-sm transition-all ${
               timeFilter === f
-                ? 'bg-primary text-primary-foreground border-primary-foreground shadow-[2px_2px_0px] shadow-primary-foreground'
-                : 'bg-secondary text-secondary-foreground border-muted-foreground/20'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-muted-foreground hover:text-foreground'
             }`}
           >
             {f}
@@ -120,18 +128,18 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
       </motion.div>
 
       {/* Summary */}
-      <motion.div variants={item} className="brutal-card p-5">
-        <div className="grid grid-cols-3 gap-3">
-          <div className="border-2 border-income/30 p-2 bg-income/5 text-center">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Income</p>
+      <motion.div variants={item} className="cyber-card-glow p-4">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-income/5 border border-income/15 p-2.5 rounded-sm text-center">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Income</p>
             <p className="text-sm font-bold text-mono text-income">{cs}{stats.income.toLocaleString()}</p>
           </div>
-          <div className="border-2 border-expense/30 p-2 bg-expense/5 text-center">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Expenses</p>
+          <div className="bg-expense/5 border border-expense/15 p-2.5 rounded-sm text-center">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Expenses</p>
             <p className="text-sm font-bold text-mono text-expense">{cs}{stats.expenses.toLocaleString()}</p>
           </div>
-          <div className={`border-2 p-2 text-center ${stats.net >= 0 ? 'border-income/30 bg-income/5' : 'border-expense/30 bg-expense/5'}`}>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Net</p>
+          <div className={`border p-2.5 rounded-sm text-center ${stats.net >= 0 ? 'bg-income/5 border-income/15' : 'bg-expense/5 border-expense/15'}`}>
+            <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Net</p>
             <p className={`text-sm font-bold text-mono ${stats.net >= 0 ? 'text-income' : 'text-expense'}`}>
               {stats.net >= 0 ? '+' : '-'}{cs}{Math.abs(stats.net).toLocaleString()}
             </p>
@@ -139,65 +147,72 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
         </div>
       </motion.div>
 
-      {/* AI Insights */}
-      {insights.length > 0 && (
-        <motion.div variants={item} className="brutal-card-accent p-5">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" strokeWidth={3} /> AI Coach Insights
-          </h3>
+      {/* ── AI Coach ──────────────────────────────────────── */}
+      <motion.div variants={item} className="cyber-card p-4">
+        <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3 flex items-center gap-1.5">
+          <Brain className="w-3.5 h-3.5 text-primary" strokeWidth={2} /> AI Coach
+        </h3>
+
+        {insights.length > 0 ? (
           <div className="space-y-2">
             {insights.map((insight, i) => (
-              <div
-                key={i}
-                className={`p-3 border-2 ${
-                  insight.type === 'warning' ? 'border-destructive/50 bg-destructive/5'
-                  : insight.type === 'celebration' ? 'border-income/50 bg-income/5'
-                  : insight.type === 'projection' ? 'border-accent/50 bg-accent/5'
-                  : 'border-primary/50 bg-primary/5'
-                }`}
-              >
-                <p className="text-xs font-bold flex items-center gap-2">
-                  {insight.icon} {insight.title}
-                </p>
-                <p className="text-[11px] text-muted-foreground mt-1">{insight.message}</p>
-              </div>
+              <InsightCard key={i} insight={insight} />
             ))}
           </div>
-        </motion.div>
-      )}
+        ) : (
+          <p className="text-xs text-muted-foreground py-4 text-center">Add more transactions to unlock insights</p>
+        )}
 
-      {/* Income vs Expenses Trend */}
+        {/* Quick Prompts */}
+        <div className="mt-3 pt-3 border-t border-border">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
+            <MessageCircle className="w-3 h-3" /> Ask AI
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {QUICK_PROMPTS.map(prompt => (
+              <button
+                key={prompt}
+                className="text-[10px] px-2.5 py-1.5 bg-secondary text-secondary-foreground rounded-sm border border-border hover:border-primary/30 hover:text-primary transition-colors"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Trend */}
       {trendData.length > 0 && (
-        <motion.div variants={item} className="brutal-card p-5">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" strokeWidth={3} /> Income vs Expenses
+        <motion.div variants={item} className="cyber-card p-4">
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3 flex items-center gap-1.5">
+            <BarChart3 className="w-3.5 h-3.5" /> Income vs Expenses
           </h3>
-          <div className="h-48">
+          <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 18%, 15%)" />
-                <XAxis dataKey="date" tick={{ fill: 'hsl(220, 10%, 45%)', fontSize: 9 }} />
-                <YAxis tick={{ fill: 'hsl(220, 10%, 45%)', fontSize: 9 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 18%, 10%)" />
+                <XAxis dataKey="date" tick={{ fill: 'hsl(220, 10%, 35%)', fontSize: 9 }} />
+                <YAxis tick={{ fill: 'hsl(220, 10%, 35%)', fontSize: 9 }} />
                 <Tooltip contentStyle={chartStyle} formatter={(value: number) => [`${cs}${value.toLocaleString()}`, '']} />
-                <Area type="monotone" dataKey="income" stroke="hsl(145, 85%, 45%)" fill="hsl(145, 85%, 45%)" fillOpacity={0.2} strokeWidth={2} />
-                <Area type="monotone" dataKey="expenses" stroke="hsl(0, 75%, 50%)" fill="hsl(0, 75%, 50%)" fillOpacity={0.2} strokeWidth={2} />
+                <Area type="monotone" dataKey="income" stroke="hsl(145, 85%, 45%)" fill="hsl(145, 85%, 45%)" fillOpacity={0.1} strokeWidth={1.5} />
+                <Area type="monotone" dataKey="expenses" stroke="hsl(0, 75%, 50%)" fill="hsl(0, 75%, 50%)" fillOpacity={0.1} strokeWidth={1.5} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </motion.div>
       )}
 
-      {/* Spending Pie */}
+      {/* Pie */}
       {pieData.length > 0 && (
-        <motion.div variants={item} className="brutal-card-accent p-5">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+        <motion.div variants={item} className="cyber-card p-4">
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3">
             Spending Breakdown
           </h3>
           <div className="flex items-center gap-4">
-            <div className="w-36 h-36 shrink-0">
+            <div className="w-28 h-28 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={35} outerRadius={65} paddingAngle={3} dataKey="value" stroke="hsl(220, 25%, 3%)" strokeWidth={3}>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={28} outerRadius={50} paddingAngle={2} dataKey="value" stroke="hsl(220, 30%, 2%)" strokeWidth={2}>
                     {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <Tooltip formatter={(value: number) => [`${cs}${value.toLocaleString()}`, '']} contentStyle={chartStyle} />
@@ -206,9 +221,9 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
             </div>
             <div className="flex-1 space-y-1.5 min-w-0">
               {pieData.map(d => (
-                <div key={d.name} className="flex items-center gap-2 text-xs">
-                  <div className="w-3 h-3 shrink-0 border border-foreground/20" style={{ background: d.color }} />
-                  <span className="truncate font-medium">{CATEGORY_ICONS[d.name]} {d.name}</span>
+                <div key={d.name} className="flex items-center gap-2 text-[11px]">
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: d.color }} />
+                  <span className="truncate font-medium text-foreground/80">{CATEGORY_ICONS[d.name]} {d.name}</span>
                   <span className="ml-auto text-mono text-muted-foreground">{cs}{d.value.toLocaleString()}</span>
                 </div>
               ))}
@@ -217,20 +232,20 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
         </motion.div>
       )}
 
-      {/* Category Bar Chart */}
+      {/* Category Bars */}
       {categoryBarData.length > 0 && (
-        <motion.div variants={item} className="brutal-card p-5">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+        <motion.div variants={item} className="cyber-card p-4">
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3">
             Top Categories
           </h3>
-          <div className="h-48">
+          <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={categoryBarData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 18%, 15%)" />
-                <XAxis dataKey="name" tick={{ fill: 'hsl(220, 10%, 45%)', fontSize: 9 }} />
-                <YAxis tick={{ fill: 'hsl(220, 10%, 45%)', fontSize: 9 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 18%, 10%)" />
+                <XAxis dataKey="name" tick={{ fill: 'hsl(220, 10%, 35%)', fontSize: 9 }} />
+                <YAxis tick={{ fill: 'hsl(220, 10%, 35%)', fontSize: 9 }} />
                 <Tooltip contentStyle={chartStyle} formatter={(value: number) => [`${cs}${value.toLocaleString()}`, '']} />
-                <Bar dataKey="value" fill="hsl(145, 85%, 45%)" stroke="hsl(220, 25%, 3%)" strokeWidth={2}>
+                <Bar dataKey="value" fill="hsl(145, 85%, 45%)" stroke="hsl(220, 30%, 2%)" strokeWidth={1} radius={[2, 2, 0, 0]}>
                   {categoryBarData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                 </Bar>
               </BarChart>
@@ -239,5 +254,21 @@ export default function AnalyticsDashboard({ transactions }: AnalyticsDashboardP
         </motion.div>
       )}
     </motion.div>
+  );
+}
+
+function InsightCard({ insight }: { insight: AIInsight }) {
+  const borderColor = insight.type === 'warning' ? 'border-destructive/20 bg-destructive/5'
+    : insight.type === 'celebration' ? 'border-income/20 bg-income/5'
+    : insight.type === 'projection' ? 'border-accent/20 bg-accent/5'
+    : 'border-primary/20 bg-primary/5';
+
+  return (
+    <div className={`p-3 border rounded-sm ${borderColor}`}>
+      <p className="text-[11px] font-semibold flex items-center gap-1.5">
+        {insight.icon} {insight.title}
+      </p>
+      <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{insight.message}</p>
+    </div>
   );
 }

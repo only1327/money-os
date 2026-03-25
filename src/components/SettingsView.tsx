@@ -33,49 +33,47 @@ export default function SettingsView({ onLock, onClearData, onShowHistory, onSho
     saveSettings({ currency: code });
   };
 
+  const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.2 } } };
+
   return (
-    <div className="space-y-4 pb-28">
+    <motion.div initial="hidden" animate="show" transition={{ staggerChildren: 0.04 }} className="space-y-3 pb-28">
       {/* Quick Links */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="brutal-card p-5">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Quick Access</h3>
-        <div className="space-y-2">
-          <button
-            onClick={onShowHistory}
-            className="w-full flex items-center gap-3 p-3 border-2 border-muted-foreground/20 hover:border-primary transition-colors"
-          >
-            <List className="w-5 h-5 text-primary" strokeWidth={3} />
+      <motion.div variants={item} className="cyber-card p-4">
+        <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3">Quick Access</h3>
+        <div className="space-y-1.5">
+          <button onClick={onShowHistory}
+            className="w-full flex items-center gap-3 p-3 rounded-sm border border-border hover:border-primary/30 transition-colors">
+            <List className="w-4 h-4 text-primary" strokeWidth={2} />
             <div className="text-left">
-              <p className="text-sm font-bold">TRANSACTION HISTORY</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">View & manage all transactions</p>
+              <p className="text-xs font-medium">Transaction History</p>
+              <p className="text-[10px] text-muted-foreground">View & manage all transactions</p>
             </div>
           </button>
-          <button
-            onClick={onShowCSV}
-            className="w-full flex items-center gap-3 p-3 border-2 border-muted-foreground/20 hover:border-primary transition-colors"
-          >
-            <Upload className="w-5 h-5 text-primary" strokeWidth={3} />
+          <button onClick={onShowCSV}
+            className="w-full flex items-center gap-3 p-3 rounded-sm border border-border hover:border-primary/30 transition-colors">
+            <Upload className="w-4 h-4 text-primary" strokeWidth={2} />
             <div className="text-left">
-              <p className="text-sm font-bold">IMPORT CSV</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Import bank statements</p>
+              <p className="text-xs font-medium">Import CSV</p>
+              <p className="text-[10px] text-muted-foreground">Import bank statements</p>
             </div>
           </button>
         </div>
       </motion.div>
 
       {/* Currency */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }} className="brutal-card p-5">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
-          <DollarSign className="w-4 h-4" strokeWidth={3} /> Currency
+      <motion.div variants={item} className="cyber-card p-4">
+        <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3 flex items-center gap-1.5">
+          <DollarSign className="w-3 h-3" /> Currency
         </h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {CURRENCIES.map(c => (
             <button
               key={c.code}
               onClick={() => handleCurrencyChange(c.code)}
-              className={`px-3 py-2 text-xs font-bold border-2 transition-all ${
+              className={`px-3 py-1.5 text-[10px] font-bold rounded-sm transition-all ${
                 currency === c.code
-                  ? 'bg-primary text-primary-foreground border-foreground shadow-[3px_3px_0px] shadow-foreground'
-                  : 'bg-secondary text-secondary-foreground border-muted-foreground/20'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-muted-foreground border border-border hover:text-foreground'
               }`}
             >
               {c.symbol} {c.code}
@@ -85,53 +83,45 @@ export default function SettingsView({ onLock, onClearData, onShowHistory, onSho
       </motion.div>
 
       {/* Security */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="brutal-card p-5">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
-          <Shield className="w-4 h-4" strokeWidth={3} /> Security
+      <motion.div variants={item} className="cyber-card p-4">
+        <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3 flex items-center gap-1.5">
+          <Shield className="w-3 h-3" /> Security
         </h3>
-        <button
-          onClick={onLock}
-          className="w-full flex items-center gap-3 p-3 border-2 border-muted-foreground/20 hover:border-primary transition-colors"
-        >
-          <Lock className="w-5 h-5 text-primary" strokeWidth={3} />
+        <button onClick={onLock}
+          className="w-full flex items-center gap-3 p-3 rounded-sm border border-border hover:border-primary/30 transition-colors">
+          <Lock className="w-4 h-4 text-primary" strokeWidth={2} />
           <div className="text-left">
-            <p className="text-sm font-bold">LOCK APP</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Lock immediately</p>
+            <p className="text-xs font-medium">Lock App</p>
+            <p className="text-[10px] text-muted-foreground">Lock immediately</p>
           </div>
         </button>
       </motion.div>
 
       {/* Data */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="brutal-card-danger p-5">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
-          <Database className="w-4 h-4" strokeWidth={3} /> Data
+      <motion.div variants={item} className="cyber-card-danger p-4">
+        <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3 flex items-center gap-1.5">
+          <Database className="w-3 h-3" /> Data
         </h3>
         {!showClearConfirm ? (
-          <button
-            onClick={() => setShowClearConfirm(true)}
-            className="w-full flex items-center gap-3 p-3 border-2 border-destructive/30 hover:border-destructive transition-colors"
-          >
-            <Trash2 className="w-5 h-5 text-destructive" strokeWidth={3} />
+          <button onClick={() => setShowClearConfirm(true)}
+            className="w-full flex items-center gap-3 p-3 rounded-sm border border-destructive/20 hover:border-destructive/40 transition-colors">
+            <Trash2 className="w-4 h-4 text-destructive" strokeWidth={2} />
             <div className="text-left">
-              <p className="text-sm font-bold text-destructive">CLEAR ALL DATA</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Delete all transactions & budgets</p>
+              <p className="text-xs font-medium text-destructive">Clear All Data</p>
+              <p className="text-[10px] text-muted-foreground">Delete all transactions & budgets</p>
             </div>
           </button>
         ) : (
-          <div className="p-4 bg-destructive/10 border-2 border-destructive">
-            <p className="text-sm font-bold text-destructive mb-3">⚠ THIS CANNOT BE UNDONE</p>
+          <div className="p-3 bg-destructive/5 border border-destructive/20 rounded-sm">
+            <p className="text-xs font-semibold text-destructive mb-3">⚠ This cannot be undone</p>
             <div className="flex gap-2">
-              <button
-                onClick={() => { onClearData(); setShowClearConfirm(false); }}
-                className="flex-1 py-2.5 bg-destructive text-destructive-foreground text-xs font-bold uppercase tracking-wider border-2 border-destructive-foreground/30"
-              >
-                DELETE EVERYTHING
+              <button onClick={() => { onClearData(); setShowClearConfirm(false); }}
+                className="flex-1 py-2 bg-destructive text-destructive-foreground text-[10px] font-bold uppercase rounded-sm">
+                Delete Everything
               </button>
-              <button
-                onClick={() => setShowClearConfirm(false)}
-                className="flex-1 py-2.5 bg-secondary text-secondary-foreground text-xs font-bold uppercase tracking-wider border-2 border-muted-foreground/20"
-              >
-                CANCEL
+              <button onClick={() => setShowClearConfirm(false)}
+                className="flex-1 py-2 bg-secondary text-secondary-foreground text-[10px] font-bold rounded-sm border border-border">
+                Cancel
               </button>
             </div>
           </div>
@@ -139,16 +129,14 @@ export default function SettingsView({ onLock, onClearData, onShowHistory, onSho
       </motion.div>
 
       {/* About */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="brutal-card-muted p-5">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
-          <Info className="w-4 h-4" strokeWidth={3} /> About
+      <motion.div variants={item} className="cyber-card-muted p-4">
+        <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-2 flex items-center gap-1.5">
+          <Info className="w-3 h-3" /> About
         </h3>
-        <div className="space-y-1 text-sm">
-          <p className="font-bold">Money OS v1.0</p>
-          <p className="text-muted-foreground text-xs">All data stored locally on your device.</p>
-          <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider mt-2">No cloud • No tracking • Your data</p>
-        </div>
+        <p className="text-xs font-medium">Money OS v2.0</p>
+        <p className="text-[10px] text-muted-foreground mt-0.5">All data stored locally on your device.</p>
+        <p className="text-[9px] text-muted-foreground/50 mt-1">No cloud • No tracking • Your data</p>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

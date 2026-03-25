@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Zap, Upload } from 'lucide-react';
+import { Shield, Zap, Flame, TrendingUp } from 'lucide-react';
 import LockScreen from '@/components/LockScreen';
 import Dashboard from '@/components/Dashboard';
 import TransactionList from '@/components/TransactionList';
@@ -8,14 +8,14 @@ import AddTransaction from '@/components/AddTransaction';
 import BudgetView from '@/components/BudgetView';
 import BottomNav, { type TabId } from '@/components/BottomNav';
 import SettingsView from '@/components/SettingsView';
-import GamificationHub from '@/components/GamificationHub';
 import SavingsView from '@/components/SavingsView';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import CSVImport from '@/components/CSVImport';
 import { getTransactions, saveTransactions, saveBudgets, getCurrencySymbol, type Transaction } from '@/lib/storage';
 import {
   getGamificationState, saveGamificationState, updateStreak, awardXP,
-  checkNewAchievements, XP_ACTIONS, getLevelForXP, type GamificationState,
+  checkNewAchievements, XP_ACTIONS, getLevelForXP, getXPProgress,
+  type GamificationState,
 } from '@/lib/gamification';
 import { useToast } from '@/hooks/use-toast';
 
@@ -35,16 +35,16 @@ export default function Index() {
     const { streakBroken, bonusXP, state } = updateStreak();
     setGamification(state);
     if (streakBroken) {
-      toast({ title: '💔 Streak Broken', description: 'Your streak has been reset. Start fresh today!' });
+      toast({ title: '💔 Streak Broken', description: 'Start fresh today!' });
     }
     if (bonusXP > 0) {
-      toast({ title: `🔥 Streak Bonus! +${bonusXP} XP`, description: `${state.streak}-day streak milestone!` });
+      toast({ title: `🔥 Streak Bonus! +${bonusXP} XP`, description: `${state.streak}-day streak!` });
     }
     const newAchievements = checkNewAchievements();
     if (newAchievements.length > 0) {
       setGamification(getGamificationState());
       newAchievements.forEach(a => {
-        toast({ title: `${a.icon} Achievement Unlocked!`, description: a.title });
+        toast({ title: `${a.icon} Achievement!`, description: a.title });
       });
     }
   }, []);
@@ -56,7 +56,7 @@ export default function Index() {
     const xpAmount = tx.type === 'income' ? XP_ACTIONS.LOG_INCOME : XP_ACTIONS.LOG_EXPENSE;
     const { state, leveledUp, newLevel } = awardXP(xpAmount);
     setGamification(state);
-    toast({ title: `+${xpAmount} XP`, description: `${tx.type === 'income' ? 'Income' : 'Expense'} logged!` });
+    toast({ title: `+${xpAmount} XP`, description: `${tx.type === 'income' ? 'Income' : 'Expense'} logged` });
     if (leveledUp && newLevel) {
       setTimeout(() => {
         toast({ title: `${newLevel.icon} Level Up!`, description: `You're now a ${newLevel.title}!` });
@@ -76,7 +76,7 @@ export default function Index() {
     const totalXP = txs.length * XP_ACTIONS.LOG_EXPENSE;
     const { state, leveledUp, newLevel } = awardXP(totalXP);
     setGamification(state);
-    toast({ title: `📥 Imported ${txs.length} transactions`, description: `+${totalXP} XP earned!` });
+    toast({ title: `📥 Imported ${txs.length} transactions`, description: `+${totalXP} XP` });
     if (leveledUp && newLevel) {
       toast({ title: `${newLevel.icon} Level Up!`, description: `You're now a ${newLevel.title}!` });
     }
@@ -99,7 +99,7 @@ export default function Index() {
     state.gameMode = mode;
     saveGamificationState(state);
     setGamification({ ...state });
-    toast({ title: '⚙️ Mode Changed', description: `Switched to ${mode} mode` });
+    toast({ title: '⚙️ Mode Changed', description: `Switched to ${mode}` });
   }, [toast]);
 
   if (locked) {
@@ -107,35 +107,47 @@ export default function Index() {
   }
 
   const level = getLevelForXP(gamification.xp);
+  const xpProgress = getXPProgress(gamification.xp);
 
   return (
-    <div className="min-h-screen bg-background stripe-bg">
-      {/* Header */}
-      <div className="sticky top-0 z-20 bg-card border-b-3 border-primary">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary flex items-center justify-center">
-              <Shield className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
+    <div className="min-h-screen bg-background grid-bg">
+      {/* ── Header ────────────────────────────────────────── */}
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b border-border">
+        <div className="max-w-lg mx-auto px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 bg-primary/15 border border-primary/30 rounded-sm flex items-center justify-center">
+              <Shield className="w-3.5 h-3.5 text-primary" strokeWidth={2.5} />
             </div>
-            <h1 className="text-lg font-bold uppercase tracking-wider">Money OS</h1>
+            <h1 className="text-sm font-bold uppercase tracking-[0.2em] text-foreground">Money OS</h1>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 px-2 py-1 border-2 border-accent bg-accent/10">
-              <span className="text-sm">{level.icon}</span>
-              <span className="text-[9px] font-bold text-accent uppercase tracking-widest">Lv.{level.level}</span>
+            {/* Level indicator */}
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary rounded-sm border border-border">
+              <TrendingUp className="w-3 h-3 text-accent" strokeWidth={2.5} />
+              <span className="text-[9px] font-bold text-accent tracking-wider">LV.{level.level}</span>
             </div>
+            {/* Streak */}
             {gamification.streak > 0 && (
-              <div className="flex items-center gap-1 px-2 py-1 border-2 border-primary bg-primary/10">
-                <Zap className="w-3 h-3 text-primary" strokeWidth={3} />
-                <span className="text-[9px] font-bold text-primary text-mono">{gamification.streak}🔥</span>
+              <div className="flex items-center gap-1 px-2 py-1 bg-secondary rounded-sm border border-border">
+                <Zap className="w-3 h-3 text-primary" strokeWidth={2.5} />
+                <span className="text-[9px] font-bold text-primary text-mono">{gamification.streak}</span>
+                <Flame className="w-3 h-3 text-accent" strokeWidth={2.5} />
               </div>
             )}
           </div>
         </div>
+        {/* XP Progress bar */}
+        <div className="h-[2px] bg-secondary">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${xpProgress.pct}%` }}
+            className="h-full bg-gradient-to-r from-primary to-accent"
+          />
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-lg mx-auto px-4 pt-4">
+      {/* ── Content ───────────────────────────────────────── */}
+      <div className="max-w-lg mx-auto px-4 pt-3">
         <AnimatePresence mode="wait">
           {tab === 'dashboard' && !showHistory && (
             <motion.div key="dash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
@@ -164,10 +176,10 @@ export default function Index() {
           )}
           {showHistory && (
             <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
-              <div className="mb-4">
+              <div className="mb-3">
                 <button
                   onClick={() => setShowHistory(false)}
-                  className="text-xs font-bold uppercase tracking-wider text-primary border-2 border-primary px-3 py-1.5 hover:bg-primary hover:text-primary-foreground transition-colors"
+                  className="text-[10px] font-bold uppercase tracking-wider text-primary border border-primary/30 px-3 py-1.5 rounded-sm hover:bg-primary/10 transition-colors"
                 >
                   ← Back
                 </button>
@@ -197,18 +209,18 @@ export default function Index() {
             transition={{ duration: 0.1 }}
             className="fixed inset-0 z-40 flex items-end justify-center"
           >
-            <div className="absolute inset-0 bg-background/80" onClick={() => setShowBudget(false)} />
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowBudget(false)} />
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              className="relative w-full max-w-lg bg-card border-t-3 border-x-3 border-primary p-5 safe-bottom max-h-[80vh] overflow-y-auto"
+              className="relative w-full max-w-lg bg-card border-t border-primary/30 p-5 safe-bottom max-h-[80vh] overflow-y-auto rounded-t-lg"
             >
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-bold uppercase tracking-widest">Set Budgets</h2>
-                <button onClick={() => setShowBudget(false)} className="p-2 border-2 border-muted-foreground/20 hover:border-primary transition-colors">
-                  <span className="text-xs font-bold">✕</span>
+                <h2 className="text-xs font-bold uppercase tracking-[0.15em]">Set Budgets</h2>
+                <button onClick={() => setShowBudget(false)} className="p-1.5 rounded-sm hover:bg-secondary transition-colors">
+                  <span className="text-xs text-muted-foreground">✕</span>
                 </button>
               </div>
               <BudgetView transactions={transactions} />

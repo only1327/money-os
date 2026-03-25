@@ -6,32 +6,32 @@
 
 @layer base {
   :root {
-    --background: 220 25% 3%;
+    --background: 220 30% 2%;
     --foreground: 60 10% 92%;
 
-    --card: 220 20% 7%;
+    --card: 220 25% 5%;
     --card-foreground: 60 10% 92%;
 
-    --popover: 220 20% 7%;
+    --popover: 220 25% 5%;
     --popover-foreground: 60 10% 92%;
 
     --primary: 145 85% 45%;
-    --primary-foreground: 220 25% 3%;
+    --primary-foreground: 220 30% 2%;
 
-    --secondary: 220 18% 12%;
+    --secondary: 220 20% 8%;
     --secondary-foreground: 60 5% 75%;
 
-    --muted: 220 15% 10%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 220 18% 7%;
+    --muted-foreground: 220 10% 40%;
 
     --accent: 40 95% 55%;
-    --accent-foreground: 220 25% 3%;
+    --accent-foreground: 220 30% 2%;
 
     --destructive: 0 75% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 145 85% 45%;
-    --input: 220 18% 14%;
+    --border: 220 18% 12%;
+    --input: 220 22% 8%;
     --ring: 145 85% 45%;
 
     --radius: 0px;
@@ -49,13 +49,16 @@
     --chart-8: 60 70% 50%;
     --chart-9: 240 60% 60%;
 
-    --sidebar-background: 220 20% 5%;
+    --glow-primary: 0 0 20px hsl(145 85% 45% / 0.15);
+    --glow-primary-strong: 0 0 30px hsl(145 85% 45% / 0.3);
+
+    --sidebar-background: 220 25% 3%;
     --sidebar-foreground: 60 5% 75%;
     --sidebar-primary: 145 85% 45%;
-    --sidebar-primary-foreground: 220 25% 3%;
-    --sidebar-accent: 220 18% 12%;
+    --sidebar-primary-foreground: 220 30% 2%;
+    --sidebar-accent: 220 18% 8%;
     --sidebar-accent-foreground: 60 5% 75%;
-    --sidebar-border: 220 18% 14%;
+    --sidebar-border: 220 18% 10%;
     --sidebar-ring: 145 85% 45%;
   }
 }
@@ -71,89 +74,63 @@
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary) / 0.3);
-    border: 1px solid hsl(var(--primary));
+    background: hsl(var(--primary) / 0.2);
+    border-radius: 2px;
   }
 }
 
 @layer utilities {
-  .brutal-card {
+  .cyber-card {
     background: hsl(var(--card));
-    border: 3px solid hsl(var(--primary));
-    box-shadow: 6px 6px 0px hsl(var(--primary));
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    border: 1px solid hsl(var(--border));
+    transition: all 0.2s ease;
   }
 
-  .brutal-card:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0px hsl(var(--primary));
-  }
-
-  .brutal-card:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px hsl(var(--primary));
-  }
-
-  .brutal-card-accent {
+  .cyber-card-glow {
     background: hsl(var(--card));
-    border: 3px solid hsl(var(--accent));
-    box-shadow: 6px 6px 0px hsl(var(--accent));
+    border: 1px solid hsl(var(--primary) / 0.3);
+    box-shadow: var(--glow-primary);
   }
 
-  .brutal-card-muted {
+  .cyber-card-accent {
     background: hsl(var(--card));
-    border: 2px solid hsl(var(--muted-foreground) / 0.3);
-    box-shadow: 4px 4px 0px hsl(var(--muted-foreground) / 0.15);
+    border: 1px solid hsl(var(--accent) / 0.25);
   }
 
-  .brutal-card-danger {
+  .cyber-card-danger {
     background: hsl(var(--card));
-    border: 3px solid hsl(var(--destructive));
-    box-shadow: 6px 6px 0px hsl(var(--destructive));
+    border: 1px solid hsl(var(--destructive) / 0.25);
   }
 
-  .brutal-btn {
-    border: 3px solid hsl(var(--foreground));
-    box-shadow: 4px 4px 0px hsl(var(--foreground));
-    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  .cyber-card-muted {
+    background: hsl(var(--card) / 0.6);
+    border: 1px solid hsl(var(--border) / 0.5);
   }
 
-  .brutal-btn:active {
-    transform: translate(3px, 3px);
-    box-shadow: 0px 0px 0px hsl(var(--foreground));
+  .glow-fab {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.4), 0 0 40px hsl(var(--primary) / 0.15);
   }
 
-  .brutal-btn-primary {
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    border: 3px solid hsl(var(--primary-foreground));
-    box-shadow: 4px 4px 0px hsl(var(--primary-foreground));
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  .glow-text {
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.3);
   }
 
-  .brutal-btn-primary:active {
-    transform: translate(3px, 3px);
-    box-shadow: 0px 0px 0px hsl(var(--primary-foreground));
-  }
-
-  .brutal-input {
+  .cyber-input {
     background: hsl(var(--input));
-    border: 2px solid hsl(var(--muted-foreground) / 0.3);
-    transition: border-color 0.15s;
+    border: 1px solid hsl(var(--border));
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
 
-  .brutal-input:focus {
-    border-color: hsl(var(--primary));
+  .cyber-input:focus {
+    border-color: hsl(var(--primary) / 0.5);
     outline: none;
-    box-shadow: 3px 3px 0px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2);
   }
 
   .text-gradient-primary {
@@ -171,23 +148,48 @@
     padding-bottom: env(safe-area-inset-bottom, 16px);
   }
 
+  .grid-bg {
+    background-image: 
+      linear-gradient(hsl(var(--primary) / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
   .stripe-bg {
     background-image: repeating-linear-gradient(
       -45deg,
       transparent,
       transparent 4px,
-      hsl(var(--primary) / 0.05) 4px,
-      hsl(var(--primary) / 0.05) 8px
+      hsl(var(--primary) / 0.02) 4px,
+      hsl(var(--primary) / 0.02) 8px
     );
   }
 
-  .badge-brutal {
-    border: 2px solid currentColor;
-    box-shadow: 2px 2px 0px currentColor;
+  .badge-cyber {
+    border: 1px solid currentColor;
     font-weight: 700;
     text-transform: uppercase;
-    font-size: 10px;
+    font-size: 9px;
     letter-spacing: 0.1em;
     padding: 2px 8px;
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 15px hsl(var(--primary) / 0.2); }
+    50% { box-shadow: 0 0 25px hsl(var(--primary) / 0.4); }
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes number-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  .animate-number-pop {
+    animation: number-pop 0.3s ease-out;
   }
 }
